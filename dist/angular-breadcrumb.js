@@ -1,7 +1,16 @@
-/*! angular-breadcrumb - v0.1.0 - 2013-12-23
+/*! angular-breadcrumb - v0.1.0 - 2014-02-19
 * https://github.com/ncuillery/angular-breadcrumb
-* Copyright (c) 2013 Nicolas Cuillery; Licensed MIT */
-angular.module('ncy-angular-breadcrumb', ['ui.router.state'])
+* Copyright (c) 2014 Nicolas Cuillery; Licensed MIT */
+/*! angular-breadcrumb - v0.1.0 - 2014-02-19
+ * https://github.com/ncuillery/angular-breadcrumb
+ * Copyright (c) 2014 Nicolas Cuillery; Licensed MIT
+ *
+ * Enhancement By Sujay Bhowmick:
+ * Converted breadcrumb to anchor links allowing navigation through pages.
+ * */
+
+
+ angular.module('ncy-angular-breadcrumb', ['ui.router'])
     .provider('$breadcrumb', function() {
 
         var options = {};
@@ -44,25 +53,56 @@ angular.module('ncy-angular-breadcrumb', ['ui.router.state'])
                     });
 
                     return chain;
+                },
+                convertStateToUrl: function(stateName){
+                    return stateName.replace(".", "/");
+                },
+                buildBreadCrumbMarkUp: function(stateObject){
+                    var breadCrumb = '',
+                        openLi = '<li>',
+                        closeLi = '</li>',
+                        openAnchor = '<a href="#',
+                        partialCloseAnchor = '">',
+                        closeAnchor = '</a>';
+                    for (var key in stateObject) {
+                        if (stateObject.hasOwnProperty(key)) {
+                            breadCrumb += openLi;
+                            if(stateObject[key].abstract){
+                                breadCrumb += key;
+                            }else {
+                                breadCrumb += openAnchor;
+                                breadCrumb += this.convertStateToUrl(stateObject[key].name);
+                                breadCrumb += partialCloseAnchor;
+                                breadCrumb += key;
+                                breadCrumb += closeAnchor
+                            }
+                            breadCrumb += closeLi;
+                        }
+                    }
+                    return breadCrumb;
                 }
+
             };
+
         }];
 
     })
     .directive('ncyBreadcrumb', function($state, $breadcrumb) {
+
         return function(scope, element) {
 
             scope.$watch(function() { return $state.current; }, function() {
-                var chain = $breadcrumb.getStatesChain();
-                var stateNames = [];
+                var chain = $breadcrumb.getStatesChain(),
+                    stateObject = {};
+
                 angular.forEach(chain, function(value) {
                     if(value.data && value.data.ncyBreadcrumbLabel) {
-                        stateNames.push(value.data.ncyBreadcrumbLabel);
+                        stateObject[value.data.ncyBreadcrumbLabel] = value;
                     } else {
-                        stateNames.push(value.name);
+                        stateObject[value.name] = value;
                     }
                 });
-                element.text(stateNames.join(' / '));
+                element.html($breadcrumb.buildBreadCrumbMarkUp(stateObject));
             }, true);
 
         };

@@ -55,7 +55,7 @@
                     return stateName.replace(".", "/");
                 },
                 buildBreadCrumbMarkUp: function(stateObject){
-                    var  breadCrumb = '',
+                    var breadCrumb = '',
                         openLi = '<li>',
                         closeLi = '</li>',
                         openAnchor = '<a href="#',
